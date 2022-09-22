@@ -55,12 +55,20 @@ class JIRA(IssueTrackerType):
             options = settings.JIRA_OPTIONS
         else:
             options = None
-
-        return jira.JIRA(
-            self.bug_system.base_url,
-            basic_auth=(self.bug_system.api_username, self.bug_system.api_password),
-            options=options,
-        )
+        
+        is_self_hosted = not "@" in self.bug_system.api_username
+        if is_self_hosted:
+            return jira.JIRA(
+                self.bug_system.base_url,
+                token_auth=(self.bug_system.api_password),
+                options=options,
+            )
+        else:
+            return jira.JIRA(
+                self.bug_system.base_url,
+                basic_auth=(self.bug_system.api_username, self.bug_system.api_password),
+                options=options,
+            )
 
     def is_adding_testcase_to_issue_disabled(self):
         return not (
